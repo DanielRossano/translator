@@ -1,0 +1,46 @@
+{
+  "name": "translation-service",
+  "version": "1.0.0",
+  "description": "Microservices-based translation service with message queue",
+  "private": true,
+  "workspaces": [
+    "services/*"
+  ],
+  "scripts": {
+    "start": "docker-compose up",
+    "start:dev": "docker-compose up --build",
+    "start:api": "npm run start --workspace=translation-api",
+    "start:worker": "npm run start --workspace=translation-worker",
+    "dev:api": "npm run dev --workspace=translation-api",
+    "dev:worker": "npm run dev --workspace=translation-worker",
+    "test": "npm run test --workspaces",
+    "test:api": "npm run test --workspace=translation-api",
+    "test:worker": "npm run test --workspace=translation-worker",
+    "build": "npm run build --workspaces",
+    "clean": "npm run clean --workspaces",
+    "install:all": "npm install && npm install --workspaces",
+    "logs": "docker-compose logs -f",
+    "logs:api": "docker-compose logs -f translation-api",
+    "logs:worker": "docker-compose logs -f translation-worker",
+    "stop": "docker-compose down",
+    "stop:clean": "docker-compose down -v --remove-orphans"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "keywords": [
+    "translation",
+    "microservices",
+    "rabbitmq",
+    "google-translate",
+    "nodejs",
+    "express",
+    "typeorm"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

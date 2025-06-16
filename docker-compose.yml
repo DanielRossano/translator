@@ -1,0 +1,131 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: translation-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: translation_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d translation_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # RabbitMQ Message Broker
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: translation-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_VHOST: /
+    ports:
+      - "5672:5672"   # AMQP protocol port
+      - "15672:15672" # Management UI port
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # Translation API Service
+  translation-api:
+    build:
+      context: .
+      dockerfile: services/translation-api/Dockerfile
+    container_name: translation-api
+    environment:
+      # Node Environment
+      NODE_ENV: development
+      PORT: 3000
+      
+      # Database Configuration
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: translation_db
+      
+      # RabbitMQ Configuration
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      
+      # Google Cloud Configuration (optional - add your credentials)
+      # GOOGLE_CLOUD_PROJECT_ID: your-project-id
+      # GOOGLE_CLOUD_KEY_FILE: /app/credentials/google-credentials.json
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./services/translation-api/src:/app/src
+      # Uncomment and add your Google Cloud credentials file
+      # - ./path/to/your/google-credentials.json:/app/credentials/google-credentials.json:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Translation Worker Service
+  translation-worker:
+    build:
+      context: .
+      dockerfile: services/translation-worker/Dockerfile
+    container_name: translation-worker
+    environment:
+      # Node Environment
+      NODE_ENV: development
+      
+      # Database Configuration
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: translation_db
+      
+      # RabbitMQ Configuration
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      
+      # Google Cloud Configuration (optional - add your credentials)
+      # GOOGLE_CLOUD_PROJECT_ID: your-project-id
+      # GOOGLE_CLOUD_KEY_FILE: /app/credentials/google-credentials.json
+    volumes:
+      - ./services/translation-worker/src:/app/src
+      # Uncomment and add your Google Cloud credentials file
+      # - ./path/to/your/google-credentials.json:/app/credentials/google-credentials.json:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      translation-api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+
+networks:
+  default:
+    name: translation-network 
