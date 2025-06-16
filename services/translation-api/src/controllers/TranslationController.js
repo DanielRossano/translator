@@ -1,8 +1,10 @@
 import { TranslationService } from '../services/TranslationService.js';
+import { LibreTranslateService } from '../services/LibreTranslateService.js';
 
 export class TranslationController {
   constructor() {
     this.translationService = new TranslationService();
+    this.libreTranslateService = new LibreTranslateService();
   }
 
   async createTranslation(req, res) {
@@ -73,6 +75,74 @@ export class TranslationController {
       res.status(500).json({
         success: false,
         error: 'Failed to get translations'
+      });
+    }
+  }
+
+  async getSupportedLanguages(req, res) {
+    try {
+      const languages = await this.libreTranslateService.getSupportedLanguages();
+      
+      res.json({
+        success: true,
+        data: {
+          languages,
+          total: languages.length,
+          provider: 'LibreTranslate'
+        }
+      });
+    } catch (error) {
+      console.error('Error getting supported languages:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get supported languages'
+      });
+    }
+  }
+
+  async detectLanguage(req, res) {
+    try {
+      const { text } = req.body;
+      
+      if (!text) {
+        return res.status(400).json({
+          success: false,
+          error: 'Text is required'
+        });
+      }
+
+      const detectedLanguage = await this.libreTranslateService.detectLanguage(text);
+      
+      res.json({
+        success: true,
+        data: {
+          detectedLanguage,
+          text: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
+          provider: 'LibreTranslate'
+        }
+      });
+    } catch (error) {
+      console.error('Error detecting language:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to detect language'
+      });
+    }
+  }
+
+  async healthCheck(req, res) {
+    try {
+      const health = await this.libreTranslateService.healthCheck();
+      
+      res.json({
+        success: true,
+        data: health
+      });
+    } catch (error) {
+      console.error('Health check error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Health check failed'
       });
     }
   }

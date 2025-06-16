@@ -1,24 +1,24 @@
 import { AppDataSource } from '../config/database.js';
 import { Translation } from '../models/Translation.js';
-import { GoogleTranslationService } from './GoogleTranslationService.js';
+import { LibreTranslateService } from './LibreTranslateService.js';
 
 export class TranslationService {
   constructor() {
     this.translationRepository = AppDataSource.getRepository(Translation);
-    this.googleTranslationService = new GoogleTranslationService();
+    this.libreTranslateService = new LibreTranslateService();
   }
 
   async processTranslation(translationData) {
     const { id, text, sourceLang, targetLang } = translationData;
 
     try {
-      console.log(`Processing translation ${id}`);
+      console.log(`🔄 Processing translation ${id}: "${text.substring(0, 30)}..." (${sourceLang} → ${targetLang})`);
 
       // Update status to processing
       await this.updateTranslationStatus(id, 'processing');
 
-      // Perform translation
-      const translatedText = await this.googleTranslationService.translateText(
+      // Perform translation using LibreTranslate
+      const translatedText = await this.libreTranslateService.translateText(
         text,
         sourceLang,
         targetLang
@@ -27,18 +27,27 @@ export class TranslationService {
       // Update with completed status and result
       await this.updateTranslationStatus(id, 'completed', translatedText);
 
-      console.log(`Translation ${id} completed successfully`);
-    } catch (error) {
-      console.error(`Translation ${id} failed:`, error);
+      console.log(`✅ Translation ${id} completed successfully: "${translatedText.substring(0, 30)}..."`);
       
-      // Update status to failed
-      await this.updateTranslationStatus(id, 'failed');
+      return {
+        id,
+        originalText: text,
+        translatedText,
+        sourceLang,
+        targetLang,
+        status: 'completed'
+      };
+
+    } catch (error) {
+      console.error(`❌ Translation ${id} failed:`, error.message);
+      
+      // Update status to failed with error message
+      await this.updateTranslationStatus(id, 'failed', null, error.message);
       
       throw error;
     }
   }
-
-  async updateTranslationStatus(id, status, translatedText = null) {
+  async updateTranslationStatus(id, status, translatedText = null, errorMessage = null) {
     const translation = await this.translationRepository.findOne({
       where: { id }
     });
@@ -53,5 +62,30 @@ export class TranslationService {
     }
 
     return await this.translationRepository.save(translation);
+  }
+
+  /**
+   * Verificar saúde do serviço de tradução
+   */
+  async healthCheck() {
+    try {
+      const testResult = await this.libreTranslateService.translateText(
+        'Hello',
+        'en',
+        'pt'
+      );
+      
+      return {
+        status: 'healthy',
+        service: 'LibreTranslate',
+        testTranslation: testResult
+      };
+    } catch (error) {
+      return {
+        status: 'unhealthy',
+        service: 'LibreTranslate',
+        error: error.message
+      };
+    }
   }
 }

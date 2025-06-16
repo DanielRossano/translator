@@ -17,8 +17,8 @@
     "build": "echo 'No build step needed for this service'"
   },
   "dependencies": {
-    "@google-cloud/translate": "^8.0.2",
     "amqplib": "^0.10.3",
+    "axios": "^1.6.8",
     "dotenv": "^16.4.5",
     "pg": "^8.11.3",
     "reflect-metadata": "^0.1.13",

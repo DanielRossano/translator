@@ -117,4 +117,90 @@ router.get('/translations/:id', (req, res) => translationController.getTranslati
  */
 router.get('/translations', (req, res) => translationController.getAllTranslations(req, res));
 
+/**
+ * @swagger
+ * /api/languages:
+ *   get:
+ *     summary: Obter idiomas suportados
+ *     tags: [Languages]
+ *     responses:
+ *       200:
+ *         description: Lista de idiomas suportados
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     languages:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           code:
+ *                             type: string
+ *                           name:
+ *                             type: string
+ *                     total:
+ *                       type: integer
+ *                     provider:
+ *                       type: string
+ */
+router.get('/languages', (req, res) => translationController.getSupportedLanguages(req, res));
+
+/**
+ * @swagger
+ * /api/detect:
+ *   post:
+ *     summary: Detectar idioma do texto
+ *     tags: [Languages]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: ['text']
+ *             properties:
+ *               text:
+ *                 type: string
+ *                 description: 'Texto para detectar o idioma'
+ *     responses:
+ *       200:
+ *         description: Idioma detectado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     detectedLanguage:
+ *                       type: string
+ *                     text:
+ *                       type: string
+ *                     provider:
+ *                       type: string
+ */
+router.post('/detect', (req, res) => translationController.detectLanguage(req, res));
+
+/**
+ * @swagger
+ * /api/health/translation:
+ *   get:
+ *     summary: Verificar saúde do serviço de tradução
+ *     tags: [Health]
+ *     responses:
+ *       200:
+ *         description: Status do serviço de tradução
+ */
+router.get('/health/translation', (req, res) => translationController.healthCheck(req, res));
+
 export default router;
