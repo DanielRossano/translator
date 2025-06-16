@@ -1,6 +1,6 @@
 # Translation Service
 
-Um serviço de tradução baseado em microserviços utilizando Node.js, Express, RabbitMQ e Google Cloud Translation API.
+Um serviço de tradução baseado em microserviços utilizando Node.js, Express, RabbitMQ e LibreTranslate.
 
 Este projeto implementa uma arquitetura de microserviços simples com dois serviços principais:
 
@@ -14,7 +14,7 @@ Este projeto implementa uma arquitetura de microserviços simples com dois servi
 - **RabbitMQ**: Message broker para comunicação entre serviços
 - **PostgreSQL**: Banco de dados relacional
 - **TypeORM**: ORM para Node.js e TypeScript
-- **Google Cloud Translation API**: Serviço de tradução
+- **LibreTranslate**: Serviço de tradução
 - **Docker & Docker Compose**: Containerização e orquestração
 - **Swagger**: Documentação da API
 
@@ -87,18 +87,4 @@ GET /api/translations?page=1&limit=10
 
 ```http
 GET /health
-```
-
-## Configuração do Google Translate
-
-Para usar o Google Cloud Translation API:
-
-1. Criar um projeto no Google Cloud Console
-2. Habilitar a Translation API
-3. Criar uma service account e baixar o arquivo JSON
-4. Configurar as variáveis de ambiente:
-
-```env
-GOOGLE_CLOUD_PROJECT_ID=seu-projeto-id
-GOOGLE_CLOUD_KEY_FILE=caminho/para/suas/credenciais.json
 ```
