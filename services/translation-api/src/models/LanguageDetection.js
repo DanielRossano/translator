@@ -1,8 +1,8 @@
 import { EntitySchema } from 'typeorm';
 
-export const Translation = new EntitySchema({
-  name: 'Translation',
-  tableName: 'translations',
+export const LanguageDetection = new EntitySchema({
+  name: 'LanguageDetection',
+  tableName: 'language_detections',
   columns: {
     id: {
       type: 'uuid',
@@ -13,24 +13,28 @@ export const Translation = new EntitySchema({
       type: 'text',
       nullable: false
     },
-    translatedText: {
-      type: 'text',
+    detectedLanguage: {
+      type: 'varchar',
+      length: 10,
       nullable: true
     },
-    sourceLang: {
-      type: 'varchar',
-      length: 10,
-      nullable: false
-    },
-    targetLang: {
-      type: 'varchar',
-      length: 10,
-      nullable: false
+    confidence: {
+      type: 'float',
+      nullable: true
     },
     status: {
       type: 'varchar',
       length: 20,
       default: 'pending'
+    },
+    provider: {
+      type: 'varchar',
+      length: 50,
+      nullable: true
+    },
+    errorMessage: {
+      type: 'text',
+      nullable: true
     },
     createdAt: {
       type: 'timestamp',

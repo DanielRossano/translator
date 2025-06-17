@@ -4,12 +4,11 @@ FROM node:18-alpine
 # Set working directory
 WORKDIR /app
 
-# Copy package.json files for dependency installation
+# Copy package.json and package-lock.json
 COPY services/translation-worker/package*.json ./
-COPY package*.json ./root/
 
 # Install dependencies
-RUN npm ci --only=production && npm cache clean --force
+RUN npm install --omit=dev && npm cache clean --force
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
@@ -18,7 +17,7 @@ RUN addgroup -g 1001 -S nodejs && \
 # Copy application source code
 COPY services/translation-worker/src ./src
 
-# Create credentials directory (for Google Cloud credentials if needed)
+# Create credentials directory (for future use if needed)
 RUN mkdir -p /app/credentials && chown -R nextjs:nodejs /app/credentials
 
 # Change ownership of app directory

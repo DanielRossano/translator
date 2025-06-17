@@ -99,7 +99,6 @@ export class TranslationController {
       });
     }
   }
-
   async detectLanguage(req, res) {
     try {
       const { text } = req.body;
@@ -126,6 +125,79 @@ export class TranslationController {
       res.status(500).json({
         success: false,
         error: 'Failed to detect language'
+      });
+    }
+  }
+
+  async createLanguageDetection(req, res) {
+    try {
+      const detection = await this.translationService.createLanguageDetection(req.body);
+      res.status(201).json({
+        success: true,
+        data: detection,
+        message: 'Language detection request created successfully'
+      });
+    } catch (error) {
+      console.error('Error creating language detection:', error);
+      
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          success: false,
+          error: 'Validation error',
+          details: error.errors
+        });
+      }
+
+      res.status(500).json({
+        success: false,
+        error: 'Failed to create language detection request'
+      });
+    }
+  }
+
+  async getLanguageDetection(req, res) {
+    try {
+      const { id } = req.params;
+      const detection = await this.translationService.getLanguageDetection(id);
+      
+      res.json({
+        success: true,
+        data: detection
+      });
+    } catch (error) {
+      console.error('Error getting language detection:', error);
+      
+      if (error.message === 'Language detection not found') {
+        return res.status(404).json({
+          success: false,
+          error: 'Language detection not found'
+        });
+      }
+
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get language detection'
+      });
+    }
+  }
+
+  async getAllLanguageDetections(req, res) {
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const status = req.query.status;
+      
+      const result = await this.translationService.getAllLanguageDetections(page, limit, status);
+      
+      res.json({
+        success: true,
+        data: result
+      });
+    } catch (error) {
+      console.error('Error getting language detections:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get language detections'
       });
     }
   }

@@ -6,7 +6,6 @@ export class RabbitMQService {
     this.channel = null;
     this.isConnected = false;
   }
-
   async connect() {
     try {
       const rabbitUrl = process.env.RABBITMQ_URL || 'amqp://localhost';
@@ -18,6 +17,11 @@ export class RabbitMQService {
         durable: true
       });
 
+      // Declare the language detection queue
+      await this.channel.assertQueue('language_detection_queue', {
+        durable: true
+      });
+
       this.isConnected = true;
       console.log('Connected to RabbitMQ');
     } catch (error) {
@@ -25,7 +29,6 @@ export class RabbitMQService {
       throw error;
     }
   }
-
   async publishTranslationJob(translationData) {
     if (!this.isConnected) {
       await this.connect();
@@ -37,6 +40,19 @@ export class RabbitMQService {
     });
 
     console.log('Translation job published:', translationData.id);
+  }
+
+  async publishLanguageDetectionJob(detectionData) {
+    if (!this.isConnected) {
+      await this.connect();
+    }
+
+    const message = JSON.stringify(detectionData);
+    this.channel.sendToQueue('language_detection_queue', Buffer.from(message), {
+      persistent: true
+    });
+
+    console.log('Language detection job published:', detectionData.id);
   }
 
   async close() {

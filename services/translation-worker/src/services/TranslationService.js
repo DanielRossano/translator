@@ -1,11 +1,11 @@
 import { AppDataSource } from '../config/database.js';
 import { Translation } from '../models/Translation.js';
-import { LibreTranslateService } from './LibreTranslateService.js';
+import { MyMemoryService } from './MyMemoryService.js';
 
 export class TranslationService {
   constructor() {
     this.translationRepository = AppDataSource.getRepository(Translation);
-    this.libreTranslateService = new LibreTranslateService();
+    this.translationService = new MyMemoryService();
   }
 
   async processTranslation(translationData) {
@@ -15,10 +15,8 @@ export class TranslationService {
       console.log(`🔄 Processing translation ${id}: "${text.substring(0, 30)}..." (${sourceLang} → ${targetLang})`);
 
       // Update status to processing
-      await this.updateTranslationStatus(id, 'processing');
-
-      // Perform translation using LibreTranslate
-      const translatedText = await this.libreTranslateService.translateText(
+      await this.updateTranslationStatus(id, 'processing');      // Perform translation using MyMemory
+      const translatedText = await this.translationService.translateText(
         text,
         sourceLang,
         targetLang
